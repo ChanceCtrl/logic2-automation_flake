@@ -37,14 +37,50 @@
             protobuf
           ];
         
+          # logic2-automation wants some protobuf code generated for it at build, this hook does just that
           preBuild = ''
             python ./grpc_build_hook.py
           '';
+
+          # Optional data for nix tooling stuffs
+          meta = with pkgs.lib; {
+            description = "Python automation API for Saleae Logic 2";
+            homepage = "https://github.com/saleae/logic2-automation";
+            license = licenses.mit;
+          };
+
+          doCheck = false; # TODO: Add tests?
         };
 
-      # This is the part that define what and how things are exported
+        # Shrimple dev shell to allow for local debug
+        devShell = pkgs.mkShell {
+          buildInputs = with pkgs.python3.pkgs; [
+            hatchling
+            grpcio
+            grpcio-tools
+            protobuf
+          ];
+
+          packages = [
+            logic2-automation
+          ];
+
+          shellHook = ''
+            echo "Dev shell for logic2-automation ready"
+          '';
+        };
+
+        # Overlay to extend nixpkgs in other flakes
+        overlay = final: prev: {
+          python3Packages = prev.python3Packages // {
+            logic2-automation = logic2-automation;
+          };
+        };
+
       in {
         packages.default = logic2-automation;
+        devShells.default = devShell;
+        overlays.default = overlay;
       }
     );
 }
