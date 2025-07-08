@@ -14,7 +14,7 @@
         pkgs = import nixpkgs { inherit system; };
 
         # Its not in nixpkgs so we have to fetch from source
-        logic2-automation = pkgs.python3.pkgs.buildPythonPackage {
+        logic2-automation_pkg = pkgs.python3.pkgs.buildPythonPackage {
           pname = "logic2-automation"; # So it knows what to build
           version = "1.0.7"; # Meta data stuffs
           pyproject = true; # So it knows how to build
@@ -62,7 +62,7 @@
           ];
 
           packages = [
-            logic2-automation
+            logic2-automation_pkg
           ];
 
           shellHook = ''
@@ -72,13 +72,14 @@
 
         # Overlay to extend nixpkgs in other flakes
         overlay = final: prev: {
+          # The // is merging the prev version of python3Packages and exporting the merge as the final version
           python3Packages = prev.python3Packages // {
-            logic2-automation = logic2-automation;
+            logic2-automation = logic2-automation_pkg;
           };
         };
 
       in {
-        packages.default = logic2-automation;
+        packages.default = logic2-automation_pkg;
         devShells.default = devShell;
         overlays.default = overlay;
       }
