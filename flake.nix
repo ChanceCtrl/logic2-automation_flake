@@ -13,16 +13,18 @@
         # This combined with the flake-utils package abstracts what architecture you are building for
         pkgs = import nixpkgs { inherit system; };
 
-        # Defines a package output built by this flake
-        logic2-automation = pkgs.stdenv.mkDerivation {
+        # Its not in nixpkgs so we have to fetch from source
+        logic2-automation = pkgs.python3.pkgs.buildPythonPackage {
           pname = "logic2-automation"; # So it knows what to build
           version = "1.0.7"; # Meta data stuffs
+          pyproject = true; # So it knows how to build
+          sourceRoot = "source/python"; # So it knows where it needs to build from
 
           src = pkgs.fetchFromGitHub {
             owner = "saleae";
             repo = "logic2-automation";
             rev = "6426540";
-            sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+            sha256 = "sha256-G0fYkjJITe5XY39U3aoaEofgmicdBjghI4I0rCN7m8k=";
           };
 
           buildInputs = with pkgs.python3.pkgs; [
@@ -34,22 +36,9 @@
             grpcio
             protobuf
           ];
-
+        
           preBuild = ''
-            # Generate grpc python files
-            python -m grpc_tools.protoc -I. --python_out=./ --grpc_python_out=./ ./saleae/grpc/saleae.proto
-          '';
-
-          # All the steps needed to build the package
-          buildPhase = ''
-            mkdir -p dist
-            pyinstaller --onefile main.py
-          '';
-
-          # Runs after everything is built
-          installPhase = ''
-            mkdir -p $out
-            cp dist/main $out/pycd
+            python ./grpc_build_hook.py
           '';
         };
 
