@@ -49,7 +49,12 @@
             license = licenses.mit;
           };
 
-          doCheck = false; # TODO: Add tests?
+          doCheck = true;
+
+          # Simple check to see if the fellas got generated
+          checkPhase = ''
+            python -c "from saleae import automation"
+          '';
         };
 
         # Shrimple dev shell to allow for local debug
